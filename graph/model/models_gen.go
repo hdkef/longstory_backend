@@ -2,19 +2,34 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type NewAutoLogin struct {
+	Token string `json:"token"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type NewLogin struct {
+	Username string `json:"username"`
+	Pass     string `json:"pass"`
+}
+
+type Paging struct {
+	Lastid int `json:"lastid"`
+}
+
+type Token struct {
+	Type  string `json:"type"`
+	Token string `json:"token"`
 }
 
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string `json:"id"`
+	Username  string `json:"username"`
+	Avatarurl string `json:"avatarurl"`
+}
+
+type Video struct {
+	ID        string `json:"id"`
+	Thumbnail string `json:"thumbnail"`
+	Link      string `json:"link"`
+	Title     string `json:"title"`
+	User      *User  `json:"user"`
 }

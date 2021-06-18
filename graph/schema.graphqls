@@ -2,27 +2,45 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
 type User {
   id: ID!
-  name: String!
+  username: String!
+  avatarurl: String!
+}
+
+type Video {
+  id: ID!
+  thumbnail: String!
+  link: String!
+  title: String!
+  user:User!
+}
+
+type Token {
+  type: String!
+  token: String!
+}
+
+input NewLogin {
+  username: String!
+  pass: String!
+}
+
+input NewAutoLogin {
+  token: String!
+}
+
+input Paging {
+  lastid : Int!
 }
 
 type Query {
-  todos: [Todo!]!
-}
-
-input NewTodo {
-  text: String!
-  userId: String!
+  videos:[Video!]!
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  login(input: NewLogin): Token!
+  autologin(input: NewAutoLogin): Token
+  hotspotvid(input: Paging): [Video!]!
+  foryouvid(input: Paging): [Video!]!
 }
