@@ -2,6 +2,10 @@
 
 package model
 
+type Email struct {
+	Email string `json:"email"`
+}
+
 type NewAutoLogin struct {
 	Token string `json:"token"`
 }
@@ -15,6 +19,10 @@ type Paging struct {
 	Lastid int `json:"lastid"`
 }
 
+type Status struct {
+	Status bool `json:"status"`
+}
+
 type Token struct {
 	Type  string `json:"type"`
 	Token string `json:"token"`
@@ -24,6 +32,7 @@ type User struct {
 	ID        string `json:"id"`
 	Username  string `json:"username"`
 	Avatarurl string `json:"avatarurl"`
+	Email     string `json:"email"`
 }
 
 type Video struct {

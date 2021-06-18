@@ -44,14 +44,19 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		Autologin  func(childComplexity int, input *model.NewAutoLogin) int
-		Foryouvid  func(childComplexity int, input *model.Paging) int
-		Hotspotvid func(childComplexity int, input *model.Paging) int
-		Login      func(childComplexity int, input *model.NewLogin) int
+		Delete func(childComplexity int, id string) int
 	}
 
 	Query struct {
-		Videos func(childComplexity int) int
+		Autologin     func(childComplexity int, input *model.NewAutoLogin) int
+		CheckUsername func(childComplexity int, input *model.Email) int
+		Foryouvideos  func(childComplexity int, id string) int
+		Hotspotvideos func(childComplexity int, id string) int
+		Login         func(childComplexity int, input *model.NewLogin) int
+	}
+
+	Status struct {
+		Status func(childComplexity int) int
 	}
 
 	Token struct {
@@ -61,6 +66,7 @@ type ComplexityRoot struct {
 
 	User struct {
 		Avatarurl func(childComplexity int) int
+		Email     func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Username  func(childComplexity int) int
 	}
@@ -75,13 +81,14 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	Login(ctx context.Context, input *model.NewLogin) (*model.Token, error)
-	Autologin(ctx context.Context, input *model.NewAutoLogin) (*model.Token, error)
-	Hotspotvid(ctx context.Context, input *model.Paging) ([]*model.Video, error)
-	Foryouvid(ctx context.Context, input *model.Paging) ([]*model.Video, error)
+	Delete(ctx context.Context, id string) (*model.Status, error)
 }
 type QueryResolver interface {
-	Videos(ctx context.Context) ([]*model.Video, error)
+	Hotspotvideos(ctx context.Context, id string) ([]*model.Video, error)
+	Foryouvideos(ctx context.Context, id string) ([]*model.Video, error)
+	Login(ctx context.Context, input *model.NewLogin) (*model.Token, error)
+	Autologin(ctx context.Context, input *model.NewAutoLogin) (*model.Token, error)
+	CheckUsername(ctx context.Context, input *model.Email) (*model.Status, error)
 }
 
 type executableSchema struct {
@@ -99,60 +106,84 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Mutation.autologin":
-		if e.complexity.Mutation.Autologin == nil {
+	case "Mutation.delete":
+		if e.complexity.Mutation.Delete == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_autologin_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_delete_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Autologin(childComplexity, args["input"].(*model.NewAutoLogin)), true
+		return e.complexity.Mutation.Delete(childComplexity, args["id"].(string)), true
 
-	case "Mutation.foryouvid":
-		if e.complexity.Mutation.Foryouvid == nil {
+	case "Query.autologin":
+		if e.complexity.Query.Autologin == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_foryouvid_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_autologin_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Foryouvid(childComplexity, args["input"].(*model.Paging)), true
+		return e.complexity.Query.Autologin(childComplexity, args["input"].(*model.NewAutoLogin)), true
 
-	case "Mutation.hotspotvid":
-		if e.complexity.Mutation.Hotspotvid == nil {
+	case "Query.checkUsername":
+		if e.complexity.Query.CheckUsername == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_hotspotvid_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_checkUsername_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Hotspotvid(childComplexity, args["input"].(*model.Paging)), true
+		return e.complexity.Query.CheckUsername(childComplexity, args["input"].(*model.Email)), true
 
-	case "Mutation.login":
-		if e.complexity.Mutation.Login == nil {
+	case "Query.foryouvideos":
+		if e.complexity.Query.Foryouvideos == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_login_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_foryouvideos_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Login(childComplexity, args["input"].(*model.NewLogin)), true
+		return e.complexity.Query.Foryouvideos(childComplexity, args["id"].(string)), true
 
-	case "Query.videos":
-		if e.complexity.Query.Videos == nil {
+	case "Query.hotspotvideos":
+		if e.complexity.Query.Hotspotvideos == nil {
 			break
 		}
 
-		return e.complexity.Query.Videos(childComplexity), true
+		args, err := ec.field_Query_hotspotvideos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Hotspotvideos(childComplexity, args["id"].(string)), true
+
+	case "Query.login":
+		if e.complexity.Query.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Query_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Login(childComplexity, args["input"].(*model.NewLogin)), true
+
+	case "Status.status":
+		if e.complexity.Status.Status == nil {
+			break
+		}
+
+		return e.complexity.Status.Status(childComplexity), true
 
 	case "Token.token":
 		if e.complexity.Token.Token == nil {
@@ -174,6 +205,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Avatarurl(childComplexity), true
+
+	case "User.email":
+		if e.complexity.User.Email == nil {
+			break
+		}
+
+		return e.complexity.User.Email(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -296,6 +334,7 @@ type User {
   id: ID!
   username: String!
   avatarurl: String!
+  email: String!
 }
 
 type Video {
@@ -325,14 +364,23 @@ input Paging {
 }
 
 type Query {
-  videos:[Video!]!
+  hotspotvideos(id:ID!):[Video!]!
+  foryouvideos(id:ID!):[Video!]!
+  login(input: NewLogin): Token!
+  autologin(input: NewAutoLogin): Token
+  checkUsername(input: Email):Status!
+}
+
+type Status {
+  status:Boolean!
+}
+
+input Email {
+  email:String!
 }
 
 type Mutation {
-  login(input: NewLogin): Token!
-  autologin(input: NewAutoLogin): Token
-  hotspotvid(input: Paging): [Video!]!
-  foryouvid(input: Paging): [Video!]!
+  delete(id: ID!): Status!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -341,63 +389,18 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_autologin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_delete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.NewAutoLogin
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalONewAutoLogin2ᚖlongstoryᚋgraphᚋmodelᚐNewAutoLogin(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_foryouvid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.Paging
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOPaging2ᚖlongstoryᚋgraphᚋmodelᚐPaging(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_hotspotvid_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.Paging
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOPaging2ᚖlongstoryᚋgraphᚋmodelᚐPaging(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.NewLogin
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalONewLogin2ᚖlongstoryᚋgraphᚋmodelᚐNewLogin(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -413,6 +416,81 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_autologin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.NewAutoLogin
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalONewAutoLogin2ᚖlongstoryᚋgraphᚋmodelᚐNewAutoLogin(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_checkUsername_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.Email
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOEmail2ᚖlongstoryᚋgraphᚋmodelᚐEmail(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_foryouvideos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_hotspotvideos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.NewLogin
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalONewLogin2ᚖlongstoryᚋgraphᚋmodelᚐNewLogin(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -454,7 +532,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_delete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -471,7 +549,7 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_login_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_delete_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -479,7 +557,133 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Login(rctx, args["input"].(*model.NewLogin))
+		return ec.resolvers.Mutation().Delete(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Status)
+	fc.Result = res
+	return ec.marshalNStatus2ᚖlongstoryᚋgraphᚋmodelᚐStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_hotspotvideos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_hotspotvideos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Hotspotvideos(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖlongstoryᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_foryouvideos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_foryouvideos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Foryouvideos(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Video)
+	fc.Result = res
+	return ec.marshalNVideo2ᚕᚖlongstoryᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_login_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Login(rctx, args["input"].(*model.NewLogin))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -496,130 +700,7 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 	return ec.marshalNToken2ᚖlongstoryᚋgraphᚋmodelᚐToken(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_autologin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_autologin_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Autologin(rctx, args["input"].(*model.NewAutoLogin))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Token)
-	fc.Result = res
-	return ec.marshalOToken2ᚖlongstoryᚋgraphᚋmodelᚐToken(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_hotspotvid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_hotspotvid_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Hotspotvid(rctx, args["input"].(*model.Paging))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Video)
-	fc.Result = res
-	return ec.marshalNVideo2ᚕᚖlongstoryᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_foryouvid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_foryouvid_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Foryouvid(rctx, args["input"].(*model.Paging))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Video)
-	fc.Result = res
-	return ec.marshalNVideo2ᚕᚖlongstoryᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_videos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_autologin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -635,9 +716,55 @@ func (ec *executionContext) _Query_videos(ctx context.Context, field graphql.Col
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_autologin_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Videos(rctx)
+		return ec.resolvers.Query().Autologin(rctx, args["input"].(*model.NewAutoLogin))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Token)
+	fc.Result = res
+	return ec.marshalOToken2ᚖlongstoryᚋgraphᚋmodelᚐToken(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_checkUsername(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_checkUsername_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CheckUsername(rctx, args["input"].(*model.Email))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -649,9 +776,9 @@ func (ec *executionContext) _Query_videos(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Video)
+	res := resTmp.(*model.Status)
 	fc.Result = res
-	return ec.marshalNVideo2ᚕᚖlongstoryᚋgraphᚋmodelᚐVideoᚄ(ctx, field.Selections, res)
+	return ec.marshalNStatus2ᚖlongstoryᚋgraphᚋmodelᚐStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -723,6 +850,41 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Status_status(ctx context.Context, field graphql.CollectedField, obj *model.Status) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Status",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Token_type(ctx context.Context, field graphql.CollectedField, obj *model.Token) (ret graphql.Marshaler) {
@@ -884,6 +1046,41 @@ func (ec *executionContext) _User_avatarurl(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Avatarurl, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2162,6 +2359,26 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputEmail(ctx context.Context, obj interface{}) (model.Email, error) {
+	var it model.Email
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewAutoLogin(ctx context.Context, obj interface{}) (model.NewAutoLogin, error) {
 	var it model.NewAutoLogin
 	var asMap = obj.(map[string]interface{})
@@ -2253,20 +2470,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "login":
-			out.Values[i] = ec._Mutation_login(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "autologin":
-			out.Values[i] = ec._Mutation_autologin(ctx, field)
-		case "hotspotvid":
-			out.Values[i] = ec._Mutation_hotspotvid(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "foryouvid":
-			out.Values[i] = ec._Mutation_foryouvid(ctx, field)
+		case "delete":
+			out.Values[i] = ec._Mutation_delete(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2296,7 +2501,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "videos":
+		case "hotspotvideos":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -2304,7 +2509,60 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_videos(ctx, field)
+				res = ec._Query_hotspotvideos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "foryouvideos":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_foryouvideos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "login":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_login(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "autologin":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_autologin(ctx, field)
+				return res
+			})
+		case "checkUsername":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_checkUsername(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -2314,6 +2572,33 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var statusImplementors = []string{"Status"}
+
+func (ec *executionContext) _Status(ctx context.Context, sel ast.SelectionSet, obj *model.Status) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Status")
+		case "status":
+			out.Values[i] = ec._Status_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2380,6 +2665,11 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "avatarurl":
 			out.Values[i] = ec._User_avatarurl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2731,6 +3021,20 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNStatus2longstoryᚋgraphᚋmodelᚐStatus(ctx context.Context, sel ast.SelectionSet, v model.Status) graphql.Marshaler {
+	return ec._Status(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStatus2ᚖlongstoryᚋgraphᚋmodelᚐStatus(ctx context.Context, sel ast.SelectionSet, v *model.Status) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Status(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3070,6 +3374,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
+func (ec *executionContext) unmarshalOEmail2ᚖlongstoryᚋgraphᚋmodelᚐEmail(ctx context.Context, v interface{}) (*model.Email, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputEmail(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalONewAutoLogin2ᚖlongstoryᚋgraphᚋmodelᚐNewAutoLogin(ctx context.Context, v interface{}) (*model.NewAutoLogin, error) {
 	if v == nil {
 		return nil, nil
@@ -3083,14 +3395,6 @@ func (ec *executionContext) unmarshalONewLogin2ᚖlongstoryᚋgraphᚋmodelᚐNe
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputNewLogin(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOPaging2ᚖlongstoryᚋgraphᚋmodelᚐPaging(ctx context.Context, v interface{}) (*model.Paging, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputPaging(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

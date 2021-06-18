@@ -53,6 +53,8 @@ func ParseMapClaims(parsedToken *jwt.Token) (*model.User, error) {
 	return &claims, nil
 }
 
+//ParseTokenString will parse token string and return jwt.Token. If token is invalid it will return error ERR_INVALID_TOKEN.
+//if token is expired it will return with error message ERR_NEED_NEW_TOKEN
 func ParseTokenString(tokenstring *string) (*jwt.Token, error) {
 	parsedToken, err := jwt.Parse(*tokenstring, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -73,6 +75,7 @@ func ParseTokenString(tokenstring *string) (*jwt.Token, error) {
 	return parsedToken, nil
 }
 
+//checkTokenRenew will substract now with exp value in token and compare to time range, if it fullfills it return error ERR_NEED_NEW_TOKEN
 func checkTokenRenew(token *jwt.Token) error {
 	now := time.Now().Unix()
 	timeSubNow := (*token).Claims.(jwt.MapClaims)["exp"].(float64) - float64(now)

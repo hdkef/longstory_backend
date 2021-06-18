@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"longstory/driver"
 	"longstory/graph"
 	"longstory/graph/generated"
 	"net/http"
@@ -16,6 +17,8 @@ const defaultPort = "8080"
 
 func main() {
 
+	db := driver.InitDB()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -24,7 +27,7 @@ func main() {
 	router := mux.NewRouter()
 	router.Use(mux.CORSMethodMiddleware(router))
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)

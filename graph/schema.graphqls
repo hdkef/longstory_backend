@@ -6,6 +6,7 @@ type User {
   id: ID!
   username: String!
   avatarurl: String!
+  email: String!
 }
 
 type Video {
@@ -35,12 +36,21 @@ input Paging {
 }
 
 type Query {
-  videos:[Video!]!
+  hotspotvideos(id:ID!):[Video!]!
+  foryouvideos(id:ID!):[Video!]!
+  login(input: NewLogin): Token!
+  autologin(input: NewAutoLogin): Token
+  checkUsername(input: Email):Status!
+}
+
+type Status {
+  status:Boolean!
+}
+
+input Email {
+  email:String!
 }
 
 type Mutation {
-  login(input: NewLogin): Token!
-  autologin(input: NewAutoLogin): Token
-  hotspotvid(input: Paging): [Video!]!
-  foryouvid(input: Paging): [Video!]!
+  delete(id: ID!): Status!
 }

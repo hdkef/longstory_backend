@@ -9,9 +9,31 @@ import (
 	"longstory/graph/generated"
 	"longstory/graph/model"
 	"longstory/helper"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *mutationResolver) Login(ctx context.Context, input *model.NewLogin) (*model.Token, error) {
+const (
+	ERR_EMAIL_EXIST = "error email already exist"
+	DB_NAME         = "longstory"
+	USERS_DOC       = "users"
+	VIDEOS_DOC      = "videos"
+)
+
+func (r *mutationResolver) Delete(ctx context.Context, id string) (*model.Status, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Hotspotvideos(ctx context.Context, id string) ([]*model.Video, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Foryouvideos(ctx context.Context, id string) ([]*model.Video, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Login(ctx context.Context, input *model.NewLogin) (*model.Token, error) {
 	//GET PASS FROM DATABASE AND COMPARE
 	//IF SAME, THEN CREATE TOKEN
 	user := model.User{
@@ -29,7 +51,7 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.NewLogin) (*m
 	}, nil
 }
 
-func (r *mutationResolver) Autologin(ctx context.Context, input *model.NewAutoLogin) (*model.Token, error) {
+func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin) (*model.Token, error) {
 	parsedToken, err := helper.ParseTokenString(&input.Token)
 	if err == nil {
 		return nil, nil
@@ -52,16 +74,19 @@ func (r *mutationResolver) Autologin(ctx context.Context, input *model.NewAutoLo
 	}
 }
 
-func (r *mutationResolver) Hotspotvid(ctx context.Context, input *model.Paging) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) Foryouvid(ctx context.Context, input *model.Paging) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Videos(ctx context.Context) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) CheckUsername(ctx context.Context, input *model.Email) (*model.Status, error) {
+	col := r.DB.Database(DB_NAME).Collection(USERS_DOC)
+	var user model.User
+	filter := bson.D{{Key: "email", Value: input.Email}}
+	err := col.FindOne(ctx, filter).Decode(&user)
+	if err == mongo.ErrNoDocuments {
+		return &model.Status{
+			Status: true,
+		}, nil
+	} else if err != nil {
+		return &model.Status{}, nil
+	}
+	return &model.Status{Status: false}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -72,13 +97,3 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) Videos(ctx context.Context, input *model.Paging) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented"))
-}
