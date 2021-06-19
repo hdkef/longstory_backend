@@ -11,10 +11,15 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const defaultPort = "8080"
+
+func init() {
+	godotenv.Load()
+}
 
 func main() {
 

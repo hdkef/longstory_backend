@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"longstory/graph/generated"
 	"longstory/graph/model"
 	"longstory/helper"
@@ -84,7 +83,6 @@ func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin
 			Token: token,
 		}, nil
 	} else {
-		fmt.Println(err)
 		return nil, err
 	}
 }
