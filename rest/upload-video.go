@@ -178,7 +178,7 @@ func getAbsPath() (string, error) {
 //IN THIS FUNC EVERY ERROR SHOULD send DELETE_VIDEO AND DELETE_THUMBNAIL progress.Status
 func storePathsToDB(progress progress, progressChan chan progress) {
 	//TOBEIMPLEMENTED
-	//store video path to database
+	//store video path and thumbnail path to database
 
 	// go sendDeleteSignal(DELETE_BOTH, &progress, progressChan)
 
