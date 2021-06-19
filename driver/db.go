@@ -18,6 +18,7 @@ func InitDB() *mongo.Client {
 	if err != nil {
 		panic("DB connection error")
 	}
-	//tobe implemented ping db conn
+	//TOBEIMPLEMENT
+	//ping db conn
 	return client
 }

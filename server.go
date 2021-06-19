@@ -2,22 +2,24 @@ package main
 
 import (
 	"log"
-	"longstory/driver"
 	"longstory/graph"
 	"longstory/graph/generated"
+	"longstory/rest"
 	"net/http"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const defaultPort = "8080"
 
 func main() {
 
-	db := driver.InitDB()
+	// db := driver.InitDB()
+	db := &mongo.Client{}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -31,6 +33,7 @@ func main() {
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
+	router.HandleFunc("/video", rest.UploadVideo(db))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

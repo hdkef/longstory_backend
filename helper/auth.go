@@ -15,8 +15,8 @@ import (
 var SECRET = os.Getenv("SECRET")
 
 const (
-	EXPINTEGER                 = 10
-	TIMEDIFF           float64 = 5
+	EXPINTEGER                 = 1000000
+	TIMEDIFF           float64 = 50000
 	ERR_NEED_NEW_TOKEN         = "error need new token"
 	ERR_TOKEN_INVALID          = "error token invalid"
 )
@@ -70,6 +70,9 @@ func ParseTokenString(tokenstring *string) (*jwt.Token, error) {
 	}
 	err = checkTokenRenew(parsedToken)
 	if err != nil {
+		if err.Error() == ERR_NEED_NEW_TOKEN {
+			return parsedToken, err
+		}
 		return nil, err
 	}
 	return parsedToken, nil

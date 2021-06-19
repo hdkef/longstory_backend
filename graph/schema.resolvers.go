@@ -9,6 +9,7 @@ import (
 	"longstory/graph/generated"
 	"longstory/graph/model"
 	"longstory/helper"
+	"longstory/mock"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,18 +23,31 @@ const (
 )
 
 func (r *mutationResolver) Delete(ctx context.Context, id string) (*model.Status, error) {
-	panic(fmt.Errorf("not implemented"))
+	//TOBEIMPLEMENT
+	//delete video from database and delete video file too
+	return &model.Status{
+		Status: true,
+	}, nil
 }
 
 func (r *queryResolver) Hotspotvideos(ctx context.Context, id string) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented"))
+	//TOBEIMPLEMENT
+	//Implements getting hostpotvideos paginated by lastID
+	mockvids := mock.MockVideos[0:6]
+	/////////////////////////////////////////////////////
+	return mockvids, nil
 }
 
 func (r *queryResolver) Foryouvideos(ctx context.Context, id string) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented"))
+	//TOBEIMPLEMENT
+	//Implements getting foryouvideos paginated by lastID
+	mockvids := mock.MockVideos[0:6]
+	/////////////////////////////////////////////////////
+	return mockvids, nil
 }
 
 func (r *queryResolver) Login(ctx context.Context, input *model.NewLogin) (*model.Token, error) {
+	//TOBEIMPLEMENT
 	//GET PASS FROM DATABASE AND COMPARE
 	//IF SAME, THEN CREATE TOKEN
 	user := model.User{
@@ -70,6 +84,7 @@ func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin
 			Token: token,
 		}, nil
 	} else {
+		fmt.Println(err)
 		return nil, err
 	}
 }
