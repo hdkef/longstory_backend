@@ -20,7 +20,7 @@ func init() {
 var SECRET = os.Getenv("SECRET")
 
 const (
-	EXPINTEGER                 = 1000000
+	EXPINTEGER                 = 100000
 	TIMEDIFF           float64 = 50000
 	ERR_NEED_NEW_TOKEN         = "error need new token"
 	ERR_TOKEN_INVALID          = "error token invalid"

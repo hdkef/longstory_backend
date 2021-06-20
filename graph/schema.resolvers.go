@@ -76,7 +76,16 @@ func (r *queryResolver) Login(ctx context.Context, input *model.NewLogin) (*mode
 func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin) (*model.Token, error) {
 	parsedToken, err := helper.ParseTokenString(&input.Token)
 	if err == nil {
-		return nil, nil
+		user, err := helper.ParseMapClaims(parsedToken)
+		if err != nil {
+			return &model.Token{
+				Type: TOKEN_TYPE_CLEAR,
+			}, nil
+		}
+		return &model.Token{
+			User: user,
+			Type: TOKEN_TYPE_NO_NEW,
+		}, nil
 	} else if err.Error() == helper.ERR_NEED_NEW_TOKEN {
 		user, err := helper.ParseMapClaims(parsedToken)
 		if err != nil {
@@ -139,6 +148,7 @@ const (
 	TOKEN_TYPE_REFRESH       = "refresh"
 	TOKEN_TYPE_CLEAR         = "clear"
 	TOKEN_TYPE_NEW           = "new"
+	TOKEN_TYPE_NO_NEW        = "nonew"
 	COL_VIDEOS               = "videos"
 	COL_USERS                = "users"
 	COL_USERS_FIELD_EMAIL    = "email"
