@@ -24,6 +24,7 @@ type Status struct {
 }
 
 type Token struct {
+	User  *User  `json:"user"`
 	Type  string `json:"type"`
 	Token string `json:"token"`
 }

@@ -14,13 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	ERR_EMAIL_EXIST = "error email already exist"
-	DB_NAME         = "longstory"
-	USERS_DOC       = "users"
-	VIDEOS_DOC      = "videos"
-)
-
 func (r *mutationResolver) Delete(ctx context.Context, id string) (*model.Status, error) {
 	//TOBEIMPLEMENT
 	//delete video from database and delete video file too
@@ -59,6 +52,7 @@ func (r *queryResolver) Login(ctx context.Context, input *model.NewLogin) (*mode
 		return &model.Token{}, err
 	}
 	return &model.Token{
+		User:  &user,
 		Type:  "new",
 		Token: token,
 	}, nil
@@ -79,6 +73,7 @@ func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin
 			return &model.Token{}, err
 		}
 		return &model.Token{
+			User:  user,
 			Type:  "refresh",
 			Token: token,
 		}, nil
@@ -110,3 +105,16 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+const (
+	ERR_EMAIL_EXIST = "error email already exist"
+	DB_NAME         = "longstory"
+	USERS_DOC       = "users"
+	VIDEOS_DOC      = "videos"
+)

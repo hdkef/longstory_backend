@@ -18,6 +18,7 @@ type Video {
 }
 
 type Token {
+  user:User!
   type: String!
   token: String!
 }
