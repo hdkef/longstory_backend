@@ -49,7 +49,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Autologin     func(childComplexity int, input *model.NewAutoLogin) int
-		CheckUsername func(childComplexity int, input *model.Email) int
+		Checkemail    func(childComplexity int, input *model.ChekEmail) int
 		Foryouvideos  func(childComplexity int, id string) int
 		Hotspotvideos func(childComplexity int, id string) int
 		Login         func(childComplexity int, input *model.NewLogin) int
@@ -69,15 +69,16 @@ type ComplexityRoot struct {
 		Avatarurl func(childComplexity int) int
 		Email     func(childComplexity int) int
 		ID        func(childComplexity int) int
+		Pass      func(childComplexity int) int
 		Username  func(childComplexity int) int
 	}
 
 	Video struct {
 		ID        func(childComplexity int) int
-		Link      func(childComplexity int) int
 		Thumbnail func(childComplexity int) int
 		Title     func(childComplexity int) int
 		User      func(childComplexity int) int
+		Video     func(childComplexity int) int
 	}
 }
 
@@ -89,7 +90,7 @@ type QueryResolver interface {
 	Foryouvideos(ctx context.Context, id string) ([]*model.Video, error)
 	Login(ctx context.Context, input *model.NewLogin) (*model.Token, error)
 	Autologin(ctx context.Context, input *model.NewAutoLogin) (*model.Token, error)
-	CheckUsername(ctx context.Context, input *model.Email) (*model.Status, error)
+	Checkemail(ctx context.Context, input *model.ChekEmail) (*model.Status, error)
 }
 
 type executableSchema struct {
@@ -131,17 +132,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Autologin(childComplexity, args["input"].(*model.NewAutoLogin)), true
 
-	case "Query.checkUsername":
-		if e.complexity.Query.CheckUsername == nil {
+	case "Query.checkemail":
+		if e.complexity.Query.Checkemail == nil {
 			break
 		}
 
-		args, err := ec.field_Query_checkUsername_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_checkemail_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.CheckUsername(childComplexity, args["input"].(*model.Email)), true
+		return e.complexity.Query.Checkemail(childComplexity, args["input"].(*model.ChekEmail)), true
 
 	case "Query.foryouvideos":
 		if e.complexity.Query.Foryouvideos == nil {
@@ -228,6 +229,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.pass":
+		if e.complexity.User.Pass == nil {
+			break
+		}
+
+		return e.complexity.User.Pass(childComplexity), true
+
 	case "User.username":
 		if e.complexity.User.Username == nil {
 			break
@@ -241,13 +249,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Video.ID(childComplexity), true
-
-	case "Video.link":
-		if e.complexity.Video.Link == nil {
-			break
-		}
-
-		return e.complexity.Video.Link(childComplexity), true
 
 	case "Video.thumbnail":
 		if e.complexity.Video.Thumbnail == nil {
@@ -269,6 +270,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Video.User(childComplexity), true
+
+	case "Video.video":
+		if e.complexity.Video.Video == nil {
+			break
+		}
+
+		return e.complexity.Video.Video(childComplexity), true
 
 	}
 	return 0, false
@@ -341,6 +349,7 @@ var sources = []*ast.Source{
 type User {
   id: ID!
   username: String!
+  pass: String
   avatarurl: String!
   email: String!
 }
@@ -348,7 +357,7 @@ type User {
 type Video {
   id: ID!
   thumbnail: String!
-  link: String!
+  video: String!
   title: String!
   user:User!
 }
@@ -383,14 +392,14 @@ type Query {
   foryouvideos(id:ID!):[Video!]!
   login(input: NewLogin): Token!
   autologin(input: NewAutoLogin): Token
-  checkUsername(input: Email):Status!
+  checkemail(input: ChekEmail):Status!
 }
 
 type Status {
   status:Boolean!
 }
 
-input Email {
+input ChekEmail {
   email:String!
 }
 
@@ -449,13 +458,13 @@ func (ec *executionContext) field_Query_autologin_args(ctx context.Context, rawA
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_checkUsername_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_checkemail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.Email
+	var arg0 *model.ChekEmail
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOEmail2ᚖlongstoryᚋgraphᚋmodelᚐEmail(ctx, tmp)
+		arg0, err = ec.unmarshalOChekEmail2ᚖlongstoryᚋgraphᚋmodelᚐChekEmail(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -754,7 +763,7 @@ func (ec *executionContext) _Query_autologin(ctx context.Context, field graphql.
 	return ec.marshalOToken2ᚖlongstoryᚋgraphᚋmodelᚐToken(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_checkUsername(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_checkemail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -771,7 +780,7 @@ func (ec *executionContext) _Query_checkUsername(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_checkUsername_args(ctx, rawArgs)
+	args, err := ec.field_Query_checkemail_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -779,7 +788,7 @@ func (ec *executionContext) _Query_checkUsername(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CheckUsername(rctx, args["input"].(*model.Email))
+		return ec.resolvers.Query().Checkemail(rctx, args["input"].(*model.ChekEmail))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1071,6 +1080,38 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_pass(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pass, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_avatarurl(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1211,7 +1252,7 @@ func (ec *executionContext) _Video_thumbnail(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Video_link(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
+func (ec *executionContext) _Video_video(ctx context.Context, field graphql.CollectedField, obj *model.Video) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1229,7 +1270,7 @@ func (ec *executionContext) _Video_link(ctx context.Context, field graphql.Colle
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Link, nil
+		return obj.Video, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2403,6 +2444,26 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputChekEmail(ctx context.Context, obj interface{}) (model.ChekEmail, error) {
+	var it model.ChekEmail
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDeleteVid(ctx context.Context, obj interface{}) (model.DeleteVid, error) {
 	var it model.DeleteVid
 	var asMap = obj.(map[string]interface{})
@@ -2430,26 +2491,6 @@ func (ec *executionContext) unmarshalInputDeleteVid(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("thumbnail"))
 			it.Thumbnail, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputEmail(ctx context.Context, obj interface{}) (model.Email, error) {
-	var it model.Email
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "email":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2634,7 +2675,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_autologin(ctx, field)
 				return res
 			})
-		case "checkUsername":
+		case "checkemail":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -2642,7 +2683,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_checkUsername(ctx, field)
+				res = ec._Query_checkemail(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -2742,6 +2783,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "pass":
+			out.Values[i] = ec._User_pass(ctx, field, obj)
 		case "avatarurl":
 			out.Values[i] = ec._User_avatarurl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2784,8 +2827,8 @@ func (ec *executionContext) _Video(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "link":
-			out.Values[i] = ec._Video_link(ctx, field, obj)
+		case "video":
+			out.Values[i] = ec._Video_video(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3438,19 +3481,19 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
+func (ec *executionContext) unmarshalOChekEmail2ᚖlongstoryᚋgraphᚋmodelᚐChekEmail(ctx context.Context, v interface{}) (*model.ChekEmail, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputChekEmail(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalODeleteVid2ᚖlongstoryᚋgraphᚋmodelᚐDeleteVid(ctx context.Context, v interface{}) (*model.DeleteVid, error) {
 	if v == nil {
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputDeleteVid(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOEmail2ᚖlongstoryᚋgraphᚋmodelᚐEmail(ctx context.Context, v interface{}) (*model.Email, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputEmail(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

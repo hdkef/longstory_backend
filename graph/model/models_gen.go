@@ -2,14 +2,14 @@
 
 package model
 
+type ChekEmail struct {
+	Email string `json:"email"`
+}
+
 type DeleteVid struct {
 	ID        string `json:"id"`
 	Video     string `json:"video"`
 	Thumbnail string `json:"thumbnail"`
-}
-
-type Email struct {
-	Email string `json:"email"`
 }
 
 type NewAutoLogin struct {
@@ -36,16 +36,17 @@ type Token struct {
 }
 
 type User struct {
-	ID        string `json:"id"`
-	Username  string `json:"username"`
-	Avatarurl string `json:"avatarurl"`
-	Email     string `json:"email"`
+	ID        string  `json:"id"`
+	Username  string  `json:"username"`
+	Pass      *string `json:"pass"`
+	Avatarurl string  `json:"avatarurl"`
+	Email     string  `json:"email"`
 }
 
 type Video struct {
 	ID        string `json:"id"`
 	Thumbnail string `json:"thumbnail"`
-	Link      string `json:"link"`
+	Video     string `json:"video"`
 	Title     string `json:"title"`
 	User      *User  `json:"user"`
 }

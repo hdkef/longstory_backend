@@ -5,10 +5,10 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"longstory/graph/generated"
 	"longstory/graph/model"
 	"longstory/helper"
-	"longstory/mock"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -18,7 +18,7 @@ func (r *mutationResolver) Delete(ctx context.Context, input *model.DeleteVid) (
 	if err != nil {
 		return &model.Status{}, err
 	}
-	err = r.DBRepo.DeleteByID("videos", input.ID)
+	err = r.DBRepo.DeleteByID(ctx, COL_VIDEOS, input.ID)
 	if err != nil {
 		return &model.Status{}, err
 	}
@@ -29,30 +29,39 @@ func (r *mutationResolver) Delete(ctx context.Context, input *model.DeleteVid) (
 }
 
 func (r *queryResolver) Hotspotvideos(ctx context.Context, id string) ([]*model.Video, error) {
-	//TOBEIMPLEMENT
-	//Implements getting hostpotvideos paginated by lastID
-	mockvids := mock.MockVideos[0:6]
-	/////////////////////////////////////////////////////
-	return mockvids, nil
+	//TOBEIMPLEMENTEDSORT
+	result, err := r.DBRepo.FindManyByLastID(ctx, COL_VIDEOS, id, 6)
+	if err != nil {
+		return nil, err
+	}
+	var videos []*model.Video = result.([]*model.Video)
+
+	return videos, nil
 }
 
 func (r *queryResolver) Foryouvideos(ctx context.Context, id string) ([]*model.Video, error) {
-	//TOBEIMPLEMENT
-	//Implements getting foryouvideos paginated by lastID
-	mockvids := mock.MockVideos[0:6]
-	/////////////////////////////////////////////////////
-	return mockvids, nil
+	//TOBEIMPLEMENTEDSORT
+	result, err := r.DBRepo.FindManyByLastID(ctx, COL_VIDEOS, id, 6)
+	if err != nil {
+		return nil, err
+	}
+	var videos []*model.Video = result.([]*model.Video)
+
+	return videos, nil
 }
 
 func (r *queryResolver) Login(ctx context.Context, input *model.NewLogin) (*model.Token, error) {
-	//TOBEIMPLEMENT
-	//GET PASS FROM DATABASE AND COMPARE
-	//IF SAME, THEN CREATE TOKEN
-	user := model.User{
-		ID:        "1",
-		Username:  "Agus",
-		Avatarurl: "no_avatar",
+	result, err := r.DBRepo.FindOneByField(ctx, COL_USERS, COL_USERS_FIELD_USERNAME, input.Username)
+	if err != nil {
+		return &model.Token{}, err
 	}
+
+	user := result.(model.User)
+
+	if *user.Pass != input.Pass {
+		return &model.Token{}, errors.New(ERR_PASS_NOT_MATCH)
+	}
+
 	token, err := helper.CreateToken(&user)
 	if err != nil {
 		return &model.Token{}, err
@@ -69,7 +78,6 @@ func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin
 	if err == nil {
 		return nil, nil
 	} else if err.Error() == helper.ERR_NEED_NEW_TOKEN {
-		//access DB and generate new token
 		user, err := helper.ParseMapClaims(parsedToken)
 		if err != nil {
 			return &model.Token{
@@ -94,8 +102,8 @@ func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin
 	}
 }
 
-func (r *queryResolver) CheckUsername(ctx context.Context, input *model.Email) (*model.Status, error) {
-	_, err := r.DBRepo.FindOneByField("users", "email", input.Email)
+func (r *queryResolver) Checkemail(ctx context.Context, input *model.ChekEmail) (*model.Status, error) {
+	_, err := r.DBRepo.FindOneByField(ctx, COL_USERS, COL_USERS_FIELD_EMAIL, input.Email)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return &model.Status{
@@ -123,11 +131,16 @@ type queryResolver struct{ *Resolver }
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
 const (
-	ERR_EMAIL_EXIST    = "error email already exist"
-	DB_NAME            = "longstory"
-	USERS_DOC          = "users"
-	VIDEOS_DOC         = "videos"
-	TOKEN_TYPE_REFRESH = "refresh"
-	TOKEN_TYPE_CLEAR   = "clear"
-	TOKEN_TYPE_NEW     = "new"
+	ERR_EMAIL_EXIST          = "error email already exist"
+	ERR_PASS_NOT_MATCH       = "pass not match"
+	DB_NAME                  = "longstory"
+	USERS_DOC                = "users"
+	VIDEOS_DOC               = "videos"
+	TOKEN_TYPE_REFRESH       = "refresh"
+	TOKEN_TYPE_CLEAR         = "clear"
+	TOKEN_TYPE_NEW           = "new"
+	COL_VIDEOS               = "videos"
+	COL_USERS                = "users"
+	COL_USERS_FIELD_EMAIL    = "email"
+	COL_USERS_FIELD_USERNAME = "username"
 )

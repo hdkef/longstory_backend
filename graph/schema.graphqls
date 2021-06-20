@@ -5,6 +5,7 @@
 type User {
   id: ID!
   username: String!
+  pass: String
   avatarurl: String!
   email: String!
 }
@@ -12,7 +13,7 @@ type User {
 type Video {
   id: ID!
   thumbnail: String!
-  link: String!
+  video: String!
   title: String!
   user:User!
 }
@@ -47,14 +48,14 @@ type Query {
   foryouvideos(id:ID!):[Video!]!
   login(input: NewLogin): Token!
   autologin(input: NewAutoLogin): Token
-  checkUsername(input: Email):Status!
+  checkemail(input: ChekEmail):Status!
 }
 
 type Status {
   status:Boolean!
 }
 
-input Email {
+input ChekEmail {
   email:String!
 }
 

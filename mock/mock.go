@@ -5,7 +5,7 @@ import "longstory/graph/model"
 var mockvid *model.Video = &model.Video{
 	ID:        "videoID",
 	Thumbnail: "thumbnail",
-	Link:      "link",
+	Video:     "link",
 	Title:     "title",
 	User: &model.User{
 		ID:        "userID",
