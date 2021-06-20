@@ -3,6 +3,7 @@ package rest
 import (
 	"errors"
 	"io"
+	"longstory/helper"
 	"longstory/utils"
 	"net/http"
 	"os"
@@ -137,7 +138,7 @@ func storeFile(req *http.Request, formfilename string, relpath string) (string, 
 	}
 	defer file.Close()
 
-	absPath, err := getAbsPath()
+	absPath, err := helper.GetAbsPath()
 	if err != nil {
 		return "", err
 	}
@@ -166,15 +167,6 @@ func storeFile(req *http.Request, formfilename string, relpath string) (string, 
 	return filepath.Join(folderRelativePath, filename), nil
 }
 
-func getAbsPath() (string, error) {
-
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return dir, nil
-}
-
 //IN THIS FUNC EVERY ERROR SHOULD send DELETE_VIDEO AND DELETE_THUMBNAIL progress.Status
 func storePathsToDB(progress progress, progressChan chan progress) {
 	//TOBEIMPLEMENTED
@@ -188,7 +180,7 @@ func storePathsToDB(progress progress, progressChan chan progress) {
 
 func deleteFile(deltype string, progress progress, progressChan chan progress) {
 
-	absPath, err := getAbsPath()
+	absPath, err := helper.GetAbsPath()
 	if err != nil {
 		go sendErrorSignal(&err, &progress, progressChan)
 		return
@@ -198,28 +190,18 @@ func deleteFile(deltype string, progress progress, progressChan chan progress) {
 
 	if deltype == DELETE_VIDEO {
 		truePath = filepath.Join(absPath, progress.VideoPath)
-		removeFile(truePath)
+		helper.RemoveFile(truePath)
 	} else if deltype == DELETE_THUMBNAIL {
 		truePath = filepath.Join(absPath, progress.ThumbnailPath)
-		removeFile(truePath)
+		helper.RemoveFile(truePath)
 	} else if deltype == DELETE_BOTH {
 		videoPath := filepath.Join(absPath, progress.VideoPath)
 		thumbnailPath := filepath.Join(absPath, progress.ThumbnailPath)
-		removeFile(videoPath, thumbnailPath)
+		helper.RemoveFile(videoPath, thumbnailPath)
 	}
 
 	err = errors.New("ERROR OCCURED. file has been stored then deleted for some reason")
 	go sendErrorSignal(&err, &progress, progressChan)
-}
-
-func removeFile(truePaths ...string) error {
-	for _, truePath := range truePaths {
-		err := os.Remove(truePath)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func createFolder(path string) error {

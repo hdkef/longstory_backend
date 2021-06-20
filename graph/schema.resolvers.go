@@ -10,13 +10,19 @@ import (
 	"longstory/helper"
 	"longstory/mock"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *mutationResolver) Delete(ctx context.Context, id string) (*model.Status, error) {
-	//TOBEIMPLEMENT
-	//delete video from database and delete video file too
+func (r *mutationResolver) Delete(ctx context.Context, input *model.DeleteVid) (*model.Status, error) {
+	err := helper.DeleteFile(input)
+	if err != nil {
+		return &model.Status{}, err
+	}
+	err = r.DBRepo.DeleteByID("videos", input.ID)
+	if err != nil {
+		return &model.Status{}, err
+	}
+
 	return &model.Status{
 		Status: true,
 	}, nil
@@ -53,8 +59,8 @@ func (r *queryResolver) Login(ctx context.Context, input *model.NewLogin) (*mode
 	}
 	return &model.Token{
 		User:  &user,
-		Type:  "new",
-		Token: token,
+		Type:  TOKEN_TYPE_NEW,
+		Token: &token,
 	}, nil
 }
 
@@ -66,33 +72,37 @@ func (r *queryResolver) Autologin(ctx context.Context, input *model.NewAutoLogin
 		//access DB and generate new token
 		user, err := helper.ParseMapClaims(parsedToken)
 		if err != nil {
-			return &model.Token{}, err
+			return &model.Token{
+				Type: TOKEN_TYPE_CLEAR,
+			}, nil
 		}
 		token, err := helper.CreateToken(user)
 		if err != nil {
-			return &model.Token{}, err
+			return &model.Token{
+				Type: TOKEN_TYPE_CLEAR,
+			}, nil
 		}
 		return &model.Token{
 			User:  user,
-			Type:  "refresh",
-			Token: token,
+			Type:  TOKEN_TYPE_REFRESH,
+			Token: &token,
 		}, nil
 	} else {
-		return nil, err
+		return &model.Token{
+			Type: TOKEN_TYPE_CLEAR,
+		}, nil
 	}
 }
 
 func (r *queryResolver) CheckUsername(ctx context.Context, input *model.Email) (*model.Status, error) {
-	col := r.DB.Database(DB_NAME).Collection(USERS_DOC)
-	var user model.User
-	filter := bson.D{{Key: "email", Value: input.Email}}
-	err := col.FindOne(ctx, filter).Decode(&user)
-	if err == mongo.ErrNoDocuments {
-		return &model.Status{
-			Status: true,
-		}, nil
-	} else if err != nil {
-		return &model.Status{}, nil
+	_, err := r.DBRepo.FindOneByField("users", "email", input.Email)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return &model.Status{
+				Status: true,
+			}, nil
+		}
+		return &model.Status{}, err
 	}
 	return &model.Status{Status: false}, nil
 }
@@ -113,8 +123,11 @@ type queryResolver struct{ *Resolver }
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
 const (
-	ERR_EMAIL_EXIST = "error email already exist"
-	DB_NAME         = "longstory"
-	USERS_DOC       = "users"
-	VIDEOS_DOC      = "videos"
+	ERR_EMAIL_EXIST    = "error email already exist"
+	DB_NAME            = "longstory"
+	USERS_DOC          = "users"
+	VIDEOS_DOC         = "videos"
+	TOKEN_TYPE_REFRESH = "refresh"
+	TOKEN_TYPE_CLEAR   = "clear"
+	TOKEN_TYPE_NEW     = "new"
 )

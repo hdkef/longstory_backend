@@ -4,6 +4,7 @@ import (
 	"log"
 	"longstory/graph"
 	"longstory/graph/generated"
+	"longstory/helper"
 	"longstory/rest"
 	"net/http"
 	"os"
@@ -34,7 +35,9 @@ func main() {
 	router := mux.NewRouter()
 	router.Use(mux.CORSMethodMiddleware(router))
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db}}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DBRepo: helper.DBRepo{
+		DB: db,
+	}}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)

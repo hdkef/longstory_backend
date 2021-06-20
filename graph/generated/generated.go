@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		Delete func(childComplexity int, id string) int
+		Delete func(childComplexity int, input *model.DeleteVid) int
 	}
 
 	Query struct {
@@ -82,7 +82,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	Delete(ctx context.Context, id string) (*model.Status, error)
+	Delete(ctx context.Context, input *model.DeleteVid) (*model.Status, error)
 }
 type QueryResolver interface {
 	Hotspotvideos(ctx context.Context, id string) ([]*model.Video, error)
@@ -117,7 +117,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Delete(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.Delete(childComplexity, args["input"].(*model.DeleteVid)), true
 
 	case "Query.autologin":
 		if e.complexity.Query.Autologin == nil {
@@ -354,9 +354,9 @@ type Video {
 }
 
 type Token {
-  user:User!
+  user:User
   type: String!
-  token: String!
+  token: String
 }
 
 input NewLogin {
@@ -369,7 +369,13 @@ input NewAutoLogin {
 }
 
 input Paging {
-  lastid : Int!
+  lastid : ID!
+}
+
+input DeleteVid {
+  id:ID!
+  video:String!
+  thumbnail:String!
 }
 
 type Query {
@@ -389,7 +395,7 @@ input Email {
 }
 
 type Mutation {
-  delete(id: ID!): Status!
+  delete(input: DeleteVid): Status!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -401,15 +407,15 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_delete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 *model.DeleteVid
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalODeleteVid2ᚖlongstoryᚋgraphᚋmodelᚐDeleteVid(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -566,7 +572,7 @@ func (ec *executionContext) _Mutation_delete(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Delete(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().Delete(rctx, args["input"].(*model.DeleteVid))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -921,14 +927,11 @@ func (ec *executionContext) _Token_user(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖlongstoryᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖlongstoryᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Token_type(ctx context.Context, field graphql.CollectedField, obj *model.Token) (ret graphql.Marshaler) {
@@ -991,14 +994,11 @@ func (ec *executionContext) _Token_token(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -2403,6 +2403,42 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputDeleteVid(ctx context.Context, obj interface{}) (model.DeleteVid, error) {
+	var it model.DeleteVid
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "video":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("video"))
+			it.Video, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "thumbnail":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("thumbnail"))
+			it.Thumbnail, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEmail(ctx context.Context, obj interface{}) (model.Email, error) {
 	var it model.Email
 	var asMap = obj.(map[string]interface{})
@@ -2481,7 +2517,7 @@ func (ec *executionContext) unmarshalInputPaging(ctx context.Context, obj interf
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastid"))
-			it.Lastid, err = ec.unmarshalNInt2int(ctx, v)
+			it.Lastid, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2667,9 +2703,6 @@ func (ec *executionContext) _Token(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = graphql.MarshalString("Token")
 		case "user":
 			out.Values[i] = ec._Token_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "type":
 			out.Values[i] = ec._Token_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2677,9 +2710,6 @@ func (ec *executionContext) _Token(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "token":
 			out.Values[i] = ec._Token_token(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3055,21 +3085,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalNStatus2longstoryᚋgraphᚋmodelᚐStatus(ctx context.Context, sel ast.SelectionSet, v model.Status) graphql.Marshaler {
 	return ec._Status(ctx, sel, &v)
 }
@@ -3423,6 +3438,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
+func (ec *executionContext) unmarshalODeleteVid2ᚖlongstoryᚋgraphᚋmodelᚐDeleteVid(ctx context.Context, v interface{}) (*model.DeleteVid, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDeleteVid(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOEmail2ᚖlongstoryᚋgraphᚋmodelᚐEmail(ctx context.Context, v interface{}) (*model.Email, error) {
 	if v == nil {
 		return nil, nil
@@ -3476,6 +3499,13 @@ func (ec *executionContext) marshalOToken2ᚖlongstoryᚋgraphᚋmodelᚐToken(c
 		return graphql.Null
 	}
 	return ec._Token(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUser2ᚖlongstoryᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

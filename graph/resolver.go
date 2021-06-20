@@ -1,6 +1,8 @@
 package graph
 
-import "go.mongodb.org/mongo-driver/mongo"
+import (
+	"longstory/helper"
+)
 
 //go:generate go run github.com/99designs/gqlgen
 
@@ -9,5 +11,5 @@ import "go.mongodb.org/mongo-driver/mongo"
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *mongo.Client
+	DBRepo helper.DBRepo
 }

@@ -2,6 +2,12 @@
 
 package model
 
+type DeleteVid struct {
+	ID        string `json:"id"`
+	Video     string `json:"video"`
+	Thumbnail string `json:"thumbnail"`
+}
+
 type Email struct {
 	Email string `json:"email"`
 }
@@ -16,7 +22,7 @@ type NewLogin struct {
 }
 
 type Paging struct {
-	Lastid int `json:"lastid"`
+	Lastid string `json:"lastid"`
 }
 
 type Status struct {
@@ -24,9 +30,9 @@ type Status struct {
 }
 
 type Token struct {
-	User  *User  `json:"user"`
-	Type  string `json:"type"`
-	Token string `json:"token"`
+	User  *User   `json:"user"`
+	Type  string  `json:"type"`
+	Token *string `json:"token"`
 }
 
 type User struct {
