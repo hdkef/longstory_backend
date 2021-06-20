@@ -6,6 +6,7 @@ import (
 	"longstory/graph/generated"
 	"longstory/helper"
 	"longstory/rest"
+	"longstory/utils"
 	"net/http"
 	"os"
 
@@ -40,7 +41,7 @@ func main() {
 	}}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	router.Handle("/query", srv)
+	router.Handle("/query", utils.Cors(srv.ServeHTTP))
 	router.HandleFunc("/video", rest.UploadVideo(db))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)

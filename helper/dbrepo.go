@@ -3,6 +3,7 @@ package helper
 import (
 	"context"
 	"fmt"
+	"longstory/graph/model"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,7 +30,14 @@ func (r *DBRepo) FindOneByID(ctx context.Context, colname string, id string) (in
 func (r *DBRepo) FindOneByField(ctx context.Context, colname string, field string, data string) (interface{}, error) {
 	fmt.Println("FindOneByID")
 
-	return nil, nil
+	user := model.User{
+		ID:        "1",
+		Username:  "agus",
+		Pass:      StrPointer("pass"),
+		Avatarurl: "avatarurl",
+	}
+
+	return user, nil
 }
 
 func (r *DBRepo) FindManyByLastID(ctx context.Context, colname string, lastid string, limit int64) (interface{}, error) {
